@@ -4,7 +4,7 @@ import json
 class Variables:
     def __init__(self):
         self.var = dict()
-        with open('config.json')as f:
+        with open('etl/config.json')as f:
             self.var = json.load(f)
 
     def get(self, variable_name):

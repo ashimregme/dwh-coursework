@@ -5,7 +5,7 @@ log = Logger()
 
 def truncate_table(database, schema, prefix, table):
     try:
-        truncate_query = f"""TRUNCATE TABLE {database}.{schema}.{prefix}_{table}"""
+        truncate_query = f"""TRUNCATE TABLE {schema}.{prefix}_{table}"""
         connect.execute_query(truncate_query)
         print(f"Successfully truncated {schema}.{prefix}_{table}")
         log.log_message(f"Successfully truncated {schema}.{prefix}_{table}")
@@ -25,7 +25,7 @@ def load_stage(table, v):
     overwrite_option = v.get("OVERWRITE_FLAG")
     schema = v.get("STAGE_SCHEMA")
 
-    #create_internal_stage(table, internal_stage, file_fmt)
+    # create_internal_stage(table, internal_stage, file_fmt)
     load_internal_stage_table(database, source_schema, table, table,
                               file_fmt, internal_stage, compression_type, overwrite_option)
     load_istg_to_stage(database, schema, file_fmt,
@@ -84,7 +84,7 @@ def load_table(query, table, schema):
 
 
 def return_update_query(table, temp_table):
-    update_tgt_table = f""" UPDATE RETAIL_DWH.TARGET.D_RETAIL_{table}_T AS T1
+    update_tgt_table = f""" UPDATE BOSS_DWH.TARGET.D_BOSS_{table}_T AS T1
                                 SET T1.{table}_DESC = T2.{table}_DESC , 
                                 ROW_UPDT_TMS = LOCALTIMESTAMP 
                                 FROM {temp_table} AS T2
