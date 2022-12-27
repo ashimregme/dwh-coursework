@@ -1,0 +1,19 @@
+{
+    "USER": "ashimregmi",
+    "PASSWORD": "LP8%k&N5n5CUBKqq",
+    "ACCOUNT": "lm27125.ap-south-1.aws",
+    "DATABASE": "RETAIL_DWH",
+    "SCHEMA": "SOURCE",
+    "SOURCE_SCHEMA": "SOURCE",
+    "STAGE_SCHEMA": "STAGE",
+    "TEMP_SCHEMA": "TEMP",
+    "TARGET_SCHEMA": "TARGET",
+    "FILE_FORMAT": "ETL",
+    "ISTAGE": "INT_STAGE",
+    "DATA_WAREHOUSE": "RETAIL_DWH",
+    "STAGE_PREFIX": "STG",
+    "TEMPORARY_PREFIX": "TMP",
+    "COMPRESSION_OPTION": "none",
+    "OVERWRITE_FLAG": "True",
+    "LOG_PATH": "/home/ashimregmi/Documents/ClassNotes/DWH/CourseWork/etl/log"
+}
