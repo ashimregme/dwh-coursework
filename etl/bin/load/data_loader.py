@@ -8,7 +8,7 @@ v = Variables()
 log = Logger()
 
 
-def load():
+def load_dimensions():
 
     print("Loading to TARGET schema " + str(datetime.datetime.now()))
     log.log_message("Loading to TARGET schema " + str(datetime.datetime.now()))
@@ -300,3 +300,141 @@ def load():
 
     print("Loaded Data to TARGET schema " + str(datetime.datetime.now()))
     log.log_message("Loaded to TARGET schema " + str(datetime.datetime.now()))
+
+
+def load_facts():
+    table = "PRC"
+    sqls.truncate_table("BOSS_DB", "TEMP", "TMP", table)
+    load_temp_prc = f"""INSERT INTO BOSS_DB.TEMP.TMP_{table}(
+                    PRC_ID,
+                    PDT_KY,
+                    LOCN_KY,
+                    TRANSACTION_TIME,
+                    CST_PRC
+                ) SELECT 
+                    ID,
+                    PRD.PDT_KY,
+                    LOCN.LOCN_KY,
+                    PRC.TRANSACTION_TIME,
+                    COST_PRICE
+                    FROM BOSS_DB.STAGE.STG_PRICE PRC
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_PDT_T PRD
+                    ON PRD.PDT_ID = PRC.PRODUCT_ID
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_LOCN_T LOCN
+                    ON LOCN.LOCN_ID = PRC.LOCATION_ID;
+                """
+    sqls.load_table(load_temp_prc, table, 'temp')
+
+    table = "F_BOSS_PRC_T"
+    temp_table = "BOSS_DB.TEMP.TMP_PRC"
+    update_tgt_prmtn_schm = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
+                                          SET T1.PDT_KY = T2.PDT_KY,
+                                          T1.LOCN_KY = T2.LOCN_KY,
+                                          T1.TRANSACTION_TIME = T2.TRANSACTION_TIME,
+                                          T1.CST_PRC = T2.CST_PRC,
+                                          ROW_UPDT_TMS = LOCALTIMESTAMP 
+                                          FROM {temp_table} AS T2
+                                          WHERE T1.PRC_ID = T2.PRC_ID;
+                  """
+    sqls.load_table(update_tgt_prmtn_schm, table, 'target')
+    load_tgt_prmtn_schm = f"""INSERT INTO BOSS_DB.TARGET.{table}(
+            PRC_ID,
+            PDT_KY,
+            LOCN_KY,
+            TRANSACTION_TIME,
+            CST_PRC,
+            OPEN_CLOSE_CD,
+            ROW_INSRT_TMS,
+            ROW_UPDT_TMS
+            ) SELECT
+                PRC_ID,
+                PDT_KY,
+                LOCN_KY,
+                TRANSACTION_TIME,
+                CST_PRC,
+                1,
+                LOCALTIMESTAMP,
+                LOCALTIMESTAMP
+            FROM {temp_table}
+            WHERE PRC_ID NOT IN (SELECT DISTINCT PRC_ID from BOSS_DB.TARGET.{table} )"""
+    sqls.load_table(load_tgt_prmtn_schm, table, 'target')
+
+    table = "SALES"
+    sqls.truncate_table("BOSS_DB", "TEMP", "TMP", table)
+    load_temp_prc = f"""INSERT INTO BOSS_DB.TEMP.TMP_{table}(
+                    SLS_ID,
+                    LOCN_KY,
+                    DT_KY,
+                    PDT_KY,
+                    CUSTOMER_KY,
+                    TRANSACTION_TIME,
+                    QTY,
+                    AMT,
+                    DSCNT
+                ) SELECT 
+                    SLS.ID,
+                    LOCN.LOCN_KY,
+                    DT.DAY_KY,
+                    PRD.PDT_KY,
+                    CSTMR.CSTMR_KY,
+                    SLS.TRANSACTION_TIME,
+                    SLS.QUANTITY,
+                    SLS.AMOUNT,
+                    SLS.DISCOUNT
+                    FROM BOSS_DB.STAGE.STG_SALES SLS
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_PDT_T PRD
+                    ON PRD.PDT_ID = SLS.PRODUCT_ID
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_TIME_DAY_T DT
+                    ON TO_DATE(SLS.TRANSACTION_TIME) = DT.ID
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_LOCN_T LOCN
+                    ON LOCN.LOCN_ID = SLS.LOCATION_ID
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_CSTMR_T CSTMR
+                    ON CSTMR.CSTMR_ID = SLS.CUSTOMER_ID;
+                """
+    sqls.load_table(load_temp_prc, table, 'temp')
+
+    table = "F_BOSS_SLS_T"
+    temp_table = "BOSS_DB.TEMP.TMP_SALES"
+    update_tgt_prmtn_schm = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
+                                          SET T1.LOCN_KY = T2.LOCN_KY,
+                                          T1.DT_KY = T2.DT_KY,
+                                          T1.PDT_KY = T2.PDT_KY,
+                                          T1.CUSTOMER_KY = T2.CUSTOMER_KY,
+                                          T1.TRANSACTION_TIME = T2.TRANSACTION_TIME,
+                                          T1.QTY = T2.QTY,
+                                          T1.AMT = T2.AMT,
+                                          T1.DSCNT = T2.DSCNT,
+                                          ROW_UPDT_TMS = LOCALTIMESTAMP 
+                                          FROM {temp_table} AS T2
+                                          WHERE T1.SLS_ID = T2.SLS_ID;
+                  """
+    sqls.load_table(update_tgt_prmtn_schm, table, 'target')
+    load_tgt_prmtn_schm = f"""INSERT INTO BOSS_DB.TARGET.{table}(
+            SLS_ID,
+            LOCN_KY,
+            DT_KY,
+            PDT_KY,
+            CUSTOMER_KY,
+            TRANSACTION_TIME,
+            QTY,
+            AMT,
+            DSCNT,
+            OPEN_CLOSE_CD,
+            ROW_INSRT_TMS,
+            ROW_UPDT_TMS
+            ) SELECT
+                SLS_ID,
+                LOCN_KY,
+                DT_KY,
+                PDT_KY,
+                CUSTOMER_KY,
+                TRANSACTION_TIME,
+                QTY,
+                AMT,
+                DSCNT,
+                1,
+                LOCALTIMESTAMP,
+                LOCALTIMESTAMP
+            FROM {temp_table}
+            WHERE SLS_ID NOT IN (SELECT DISTINCT SLS_ID from BOSS_DB.TARGET.{table} )"""
+    sqls.load_table(load_tgt_prmtn_schm, table, 'target')
