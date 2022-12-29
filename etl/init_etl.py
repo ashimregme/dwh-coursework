@@ -1,8 +1,9 @@
 from Logger import Logger
 from Variables import Variables
-from bin.load import sales_load, customer_load, store_load, aggregate_sales_load,  product_load
+from bin.load import sales_load, customer_load, aggregate_sales_load,  product_load
 from bin import truncate_tables
 from bin.extraction import extraction
+from bin.load import data_loader
 
 v = Variables()
 log = Logger()
@@ -15,7 +16,7 @@ extraction.extract()
 log.log_message("Extraction Process Completed")
 
 log.log_message("Starting the Loading Process")
-store_load.store_load()
+data_loader.load()
 product_load.product_load()
 customer_load.customer_load()
 sales_load.sales_load()
