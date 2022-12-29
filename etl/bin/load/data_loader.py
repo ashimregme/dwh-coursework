@@ -13,10 +13,10 @@ def load():
     print("Loading to TARGET schema " + str(datetime.datetime.now()))
     log.log_message("Loading to TARGET schema " + str(datetime.datetime.now()))
 
-    # load temp table country from country stage table
+    # load temp table location from location stage table
     table = "LOCN"
-    sqls.truncate_table("BOSS_DWH", "TEMP", "TMP", table)
-    load_temp_country = f"""INSERT INTO BOSS_DWH.TEMP.TMP_LOCN(
+    sqls.truncate_table("BOSS_DB", "TEMP", "TMP", table)
+    load_temp_locn = f"""INSERT INTO BOSS_DB.TEMP.TMP_LOCN(
                     LOCN_ID,
                     CNTRY_DESC,
                     RGN_DESC,
@@ -30,15 +30,24 @@ def load():
                     STATE_DESC,
                     CITY_DESC,
                     ADDRESS_DESC
-                FROM BOSS_DWH.STAGE.STG_LOCATION; """
-    sqls.load_table(load_temp_country, table, 'temp')
+                FROM BOSS_DB.STAGE.STG_LOCATION; """
+    sqls.load_table(load_temp_locn, table, 'temp')
 
-    # load dimension table country
+    # load dimension table location
     table = "D_BOSS_LOCN_T"
-    temp_table = "BOSS_DWH.TEMP.TMP_LOCN"
-    update_tgt_country = sqls.return_update_query('LOCN', temp_table)
-    sqls.load_table(update_tgt_country, table, 'target')
-    load_tgt_country = f"""INSERT INTO BOSS_DWH.TARGET.D_BOSS_LOCN_T(
+    temp_table = "BOSS_DB.TEMP.TMP_LOCN"
+    update_tgt_location = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
+                                       SET T1.CNTRY_DESC = T2.CNTRY_DESC ,
+                                       T1.RGN_DESC = T2.RGN_DESC,
+                                       T1.STT_DESC = T2.STT_DESC,
+                                       T1.CTY_DESC = T2.CTY_DESC,
+                                       T1.ADDR_DESC = T2.ADDR_DESC,
+                                       ROW_UPDT_TMS = LOCALTIMESTAMP 
+                                       FROM {temp_table} AS T2
+                                       WHERE T1.LOCN_ID = T2.LOCN_ID;
+               """
+    sqls.load_table(update_tgt_location, table, 'target')
+    load_tgt_locn = f"""INSERT INTO BOSS_DB.TARGET.D_BOSS_LOCN_T(
                 LOCN_ID,
                 CNTRY_DESC,
                 RGN_DESC,
@@ -48,7 +57,6 @@ def load():
                 LAST_OPEN_TMS,
                 LAST_CLOSED_TMS,
                 ACTV_FLG,
-                CNTRY_DESC,
                 OPEN_CLOSE_CD,
                 ROW_INSRT_TMS,
                 ROW_UPDT_TMS
@@ -65,16 +73,15 @@ def load():
                 1,
                 LOCALTIMESTAMP,
                 LOCALTIMESTAMP 
-            FROM BOSS_DWH.TEMP.TMP_LOCN
-            WHERE LOCN_ID NOT IN (SELECT DISTINCT LOCN_ID from BOSS_DWH.TARGET.D_BOSS_LOCN_T )"""
-    sqls.load_table(load_tgt_country, table, 'target')
+            FROM {temp_table}
+            WHERE LOCN_ID NOT IN (SELECT DISTINCT LOCN_ID from BOSS_DB.TARGET.D_BOSS_LOCN_T )"""
+    sqls.load_table(load_tgt_locn, table, 'target')
 
     # load temp table loyalty card from loyalty card stage table
     table = "LYLTY_CRD"
 
-    sqls.truncate_table("BOSS_DWH", "TEMP", "TMP", table)
-    print("Sucessfully Truncated TEMP.{table} ")
-    load_temp_region = f"""INSERT INTO BOSS_DWH.TEMP.TMP_{table}(
+    sqls.truncate_table("BOSS_DB", "TEMP", "TMP", table)
+    load_temp_lylty_crd = f"""INSERT INTO BOSS_DB.TEMP.TMP_{table}(
                     LYLTY_CRD_ID,
                     SHME_NM,
                     THRSHLD_AMT
@@ -82,15 +89,21 @@ def load():
                     ID,
                     SCHEME_NAME,
                     THRESHOLD_AMOUNT
-                FROM BOSS_DWH.STAGE.STG_LOYALTY_CARD;"""
-    sqls.load_table(load_temp_region, table, 'temp')
+                FROM BOSS_DB.STAGE.STG_LOYALTY_CARD;"""
+    sqls.load_table(load_temp_lylty_crd, table, 'temp')
 
     # load dimension table loyalty card
     table = "D_BOSS_LYLTY_CRD_T"
-    temp_table = "BOSS_DWH.TEMP.TMP_LYLTY_CRD"
-    update_tgt_region = sqls.return_update_query('RGN', temp_table)
-    sqls.load_table(update_tgt_region, table, 'target')
-    load_tgt_region = f"""INSERT INTO BOSS_DWH.TARGET.{table}(
+    temp_table = "BOSS_DB.TEMP.TMP_LYLTY_CRD"
+    update_tgt_lylty_card = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
+                                       SET T1.SHME_NM = T2.SHME_NM ,
+                                       T1.THRSHLD_AMT = T2.THRSHLD_AMT,
+                                       ROW_UPDT_TMS = LOCALTIMESTAMP 
+                                       FROM {temp_table} AS T2
+                                       WHERE T1.LYLTY_CRD_ID = T2.LYLTY_CRD_ID;
+               """
+    sqls.load_table(update_tgt_lylty_card, table, 'target')
+    load_tgt_lylty_card = f"""INSERT INTO BOSS_DB.TARGET.{table}(
                 LYLTY_CRD_ID,
                 SHME_NM,
                 THRSHLD_AMT,
@@ -107,18 +120,21 @@ def load():
                 LOCALTIMESTAMP,
                 LOCALTIMESTAMP
             FROM {temp_table}
-            WHERE LYLTY_CRD_ID NOT IN (SELECT DISTINCT LYLTY_CRD_ID from BOSS_DWH.TARGET.{table} )"""
-    sqls.load_table(load_tgt_region, table, 'target')
+            WHERE LYLTY_CRD_ID NOT IN (SELECT DISTINCT LYLTY_CRD_ID from BOSS_DB.TARGET.{table} )"""
+    sqls.load_table(load_tgt_lylty_card, table, 'target')
 
-    table = "TMP_CSTMR"
-    sqls.truncate_table("BOSS_DWH", "TEMP", "TMP", table)
+    table = "CSTMR"
+    sqls.truncate_table("BOSS_DB", "TEMP", "TMP", table)
     # load temp table customer from customer stage table
-    load_temp_customer = f"""INSERT INTO BOSS_DWH.TEMP.TMP_{table}(
-                    CUSTOMER_ID,
-                    CUSTOMER_FST_NM,
-                    CUSTOMER_MID_NM,
-                    CUSTOMER_LST_NM,
-                    CUSTOMER_ADDR
+    load_temp_customer = f"""INSERT INTO BOSS_DB.TEMP.TMP_{table}(
+                    CSTMR_ID,
+                    FRST_NM,
+                    LST_NM,
+                    LYLTY_CRD_KY,
+                    ADDR_DESC,
+                    PHN_NBR,
+                    AGE,
+                    GNDR
                 ) SELECT
                     ID, 
                     FIRST_NAME,
@@ -128,13 +144,13 @@ def load():
                     PHONE_NUMBER,
                     AGE,
                     GENDER
-                FROM BOSS_DWH.STAGE.STG_CUSTOMER;"""
+                FROM BOSS_DB.STAGE.STG_CUSTOMER;"""
     sqls.load_table(load_temp_customer, table, 'temp')
 
     # load dimension table customer
     table = "D_BOSS_CSTMR_T"
-    temp_table = "BOSS_DWH.TEMP.TMP_CUSTOMER"
-    update_tgt_customer = f""" UPDATE BOSS_DWH.TARGET.{table} AS T1
+    temp_table = "BOSS_DB.TEMP.TMP_CSTMR"
+    update_tgt_customer = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
                                        SET T1.FRST_NM = T2.FRST_NM ,
                                        T1.LST_NM = T2.LST_NM,
                                        T1.LYLTY_CRD_KY = T2.LYLTY_CRD_KY,
@@ -148,7 +164,7 @@ def load():
                """
 
     sqls.load_table(update_tgt_customer, table, 'target')
-    load_tgt_customer = f"""INSERT INTO BOSS_DWH.TARGET.{table}(
+    load_tgt_customer = f"""INSERT INTO BOSS_DB.TARGET.{table}(
                 CSTMR_ID,
                 FRST_NM,
                 LST_NM,
@@ -157,6 +173,7 @@ def load():
                 PHN_NBR,
                 AGE,
                 GNDR,
+                ACTV_FLG,
                 OPEN_CLOSE_CD,
                 ROW_INSRT_TMS,
                 ROW_UPDT_TMS  
@@ -170,11 +187,116 @@ def load():
                 AGE,
                 GNDR,
                 1,
+                1,
                 LOCALTIMESTAMP,
                 LOCALTIMESTAMP
             FROM {temp_table}
-            WHERE CSTMR_ID NOT IN (SELECT DISTINCT CSTMR_ID from BOSS_DWH.TARGET.{table} )"""
+            WHERE CSTMR_ID NOT IN (SELECT DISTINCT CSTMR_ID from BOSS_DB.TARGET.{table} )"""
     sqls.load_table(load_tgt_customer, table, 'target')
+
+    table = "PDT"
+    sqls.truncate_table("BOSS_DB", "TEMP", "TMP", table)
+    load_temp_prmtn_schm = f"""INSERT INTO BOSS_DB.TEMP.TMP_{table}(
+                    PDT_ID,
+                    PDT_DESC,
+                    PDT_DEPT
+                ) SELECT 
+                    ID,
+                    PRODUCT_DESC,
+                    DEPARTMENT
+                    FROM BOSS_DB.STAGE.STG_PRODUCT;"""
+    sqls.load_table(load_temp_prmtn_schm, table, 'temp')
+
+    # load dimension table product
+    table = "D_BOSS_PDT_T"
+    temp_table = "BOSS_DB.TEMP.TMP_PDT"
+    update_tgt_product = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
+                                          SET T1.PDT_DESC = T2.PDT_DESC,  
+                                          T1.PDT_DEPT = T2.PDT_DEPT,
+                                          ROW_UPDT_TMS = LOCALTIMESTAMP 
+                                          FROM {temp_table} AS T2
+                                          WHERE T1.PDT_ID = T2.PDT_ID;
+                  """
+    sqls.load_table(update_tgt_product, table, 'target')
+    load_tgt_product = f"""INSERT INTO BOSS_DB.TARGET.{table}(
+            PDT_ID,
+            PDT_DESC,
+            PDT_DEPT,
+            ACTV_FLG,
+            OPEN_CLOSE_CD,
+            ROW_INSRT_TMS,
+            ROW_UPDT_TMS
+            ) SELECT
+                PDT_ID,
+                PDT_DESC,
+                PDT_DEPT,
+                1,
+                1,
+                LOCALTIMESTAMP,
+                LOCALTIMESTAMP
+            FROM {temp_table}
+            WHERE PDT_ID NOT IN (SELECT DISTINCT PDT_ID from BOSS_DB.TARGET.{table} )"""
+    sqls.load_table(load_tgt_product, table, 'target')
+
+    table = "PRMTN_SCHM"
+    sqls.truncate_table("BOSS_DB", "TEMP", "TMP", table)
+    load_temp_prmtn_schm = f"""INSERT INTO BOSS_DB.TEMP.TMP_{table}(
+                    PRMTN_SCHM_ID,
+                    LYLTY_CRD_KY,
+                    STRT_DT,
+                    ED_DT,
+                    PRM_TYP,
+                    SCHM
+                ) SELECT 
+                    ID,
+                    LYLT.LYLTY_CRD_KY,
+                    START_DATE,
+                    END_DATE,
+                    PROMO_TYPE,
+                    SCHEME
+                    FROM BOSS_DB.STAGE.STG_PROMOTION_SCHEME PRMTN_SCHM
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_LYLTY_CRD_T LYLT
+                    ON LYLT.LYLTY_CRD_ID = PRMTN_SCHM.LOYALTY_CARD_ID
+                    ;"""
+    sqls.load_table(load_temp_prmtn_schm, table, 'temp')
+
+    # load dimension table product
+    table = "D_BOSS_PRMTN_SCHM_T"
+    temp_table = "BOSS_DB.TEMP.TMP_PRMTN_SCHM"
+    update_tgt_prmtn_schm = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
+                                          SET T1.LYLTY_CRD_KY = T2.LYLTY_CRD_KY,
+                                          T1.STRT_DT = T2.STRT_DT,
+                                          T1.ED_DT = T2.ED_DT,
+                                          T1.PRM_TYP = T2.PRM_TYP,
+                                          T1.SCHM = T2.SCHM,
+                                          ROW_UPDT_TMS = LOCALTIMESTAMP 
+                                          FROM {temp_table} AS T2
+                                          WHERE T1.PRMTN_SCHM_ID = T2.PRMTN_SCHM_ID;
+                  """
+    sqls.load_table(update_tgt_prmtn_schm, table, 'target')
+    load_tgt_prmtn_schm = f"""INSERT INTO BOSS_DB.TARGET.{table}(
+            PRMTN_SCHM_ID,
+            LYLTY_CRD_KY,
+            STRT_DT,
+            ED_DT,
+            PRM_TYP,
+            SCHM,
+            OPEN_CLOSE_CD,
+            ROW_INSRT_TMS,
+            ROW_UPDT_TMS
+            ) SELECT
+                PRMTN_SCHM_ID,
+                LYLTY_CRD_KY,
+                STRT_DT,
+                ED_DT,
+                PRM_TYP,
+                SCHM,
+                1,
+                LOCALTIMESTAMP,
+                LOCALTIMESTAMP
+            FROM {temp_table}
+            WHERE PRMTN_SCHM_ID NOT IN (SELECT DISTINCT PRMTN_SCHM_ID from BOSS_DB.TARGET.{table} )"""
+    sqls.load_table(load_tgt_prmtn_schm, table, 'target')
 
     print("Loaded Data to TARGET schema " + str(datetime.datetime.now()))
     log.log_message("Loaded to TARGET schema " + str(datetime.datetime.now()))

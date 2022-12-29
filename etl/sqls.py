@@ -81,13 +81,3 @@ def load_table(query, table, schema):
     except Exception as e:
         print(f"Failed to load {schema} table {table}")
         log.log_message(f"Failed to load {schema}table {table}")
-
-
-def return_update_query(table, temp_table):
-    update_tgt_table = f""" UPDATE BOSS_DWH.TARGET.D_BOSS_{table}_T AS T1
-                                SET T1.{table}_DESC = T2.{table}_DESC , 
-                                ROW_UPDT_TMS = LOCALTIMESTAMP 
-                                FROM {temp_table} AS T2
-                                WHERE T1.{table}_ID = T2.{table}_ID;
-        """
-    return update_tgt_table
