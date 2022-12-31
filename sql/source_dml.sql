@@ -14946,7 +14946,7 @@ VALUES
         '2020-04-28 00:00:00',
         'Clearance Sales',
         'Buy 3 get 1 free',
-        9001
+        4901
     ),
     (
         6,

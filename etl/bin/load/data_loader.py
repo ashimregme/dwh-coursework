@@ -227,14 +227,14 @@ def load_dimensions():
             ROW_INSRT_TMS,
             ROW_UPDT_TMS
             ) SELECT
-                PDT_ID,
-                PDT_DESC,
-                PDT_DEPT,
+                TMP_PDT.PDT_ID,
+                TMP_PDT.PDT_DESC,
+                TMP_PDT.PDT_DEPT,
                 1,
                 1,
                 LOCALTIMESTAMP,
                 LOCALTIMESTAMP
-            FROM {temp_table}
+            FROM {temp_table} as TMP_PDT
             WHERE PDT_ID NOT IN (SELECT DISTINCT PDT_ID from BOSS_DB.TARGET.{table} )"""
     sqls.load_table(load_tgt_product, table, 'target')
 
@@ -246,17 +246,21 @@ def load_dimensions():
                     STRT_DT,
                     ED_DT,
                     PRM_TYP,
-                    SCHM
+                    SCHM,
+                    PDT_KY
                 ) SELECT 
                     ID,
                     LYLT.LYLTY_CRD_KY,
                     START_DATE,
                     END_DATE,
                     PROMO_TYPE,
-                    SCHEME
+                    SCHEME,
+                    PDT.PDT_KY
                     FROM BOSS_DB.STAGE.STG_PROMOTION_SCHEME PRMTN_SCHM
                     LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_LYLTY_CRD_T LYLT
                     ON LYLT.LYLTY_CRD_ID = PRMTN_SCHM.LOYALTY_CARD_ID
+                    LEFT OUTER JOIN BOSS_DB.TARGET.D_BOSS_PDT_T PDT
+                    ON PDT.PDT_ID = PRMTN_SCHM.PRODUCT_ID
                     ;"""
     sqls.load_table(load_temp_prmtn_schm, table, 'temp')
 
@@ -265,6 +269,7 @@ def load_dimensions():
     temp_table = "BOSS_DB.TEMP.TMP_PRMTN_SCHM"
     update_tgt_prmtn_schm = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
                                           SET T1.LYLTY_CRD_KY = T2.LYLTY_CRD_KY,
+                                          T1.PDT_KY = T2.PDT_KY,
                                           T1.STRT_DT = T2.STRT_DT,
                                           T1.ED_DT = T2.ED_DT,
                                           T1.PRM_TYP = T2.PRM_TYP,
@@ -281,6 +286,7 @@ def load_dimensions():
             ED_DT,
             PRM_TYP,
             SCHM,
+            PDT_KY,
             OPEN_CLOSE_CD,
             ROW_INSRT_TMS,
             ROW_UPDT_TMS
@@ -291,6 +297,7 @@ def load_dimensions():
                 ED_DT,
                 PRM_TYP,
                 SCHM,
+                PDT_KY,
                 1,
                 LOCALTIMESTAMP,
                 LOCALTIMESTAMP
