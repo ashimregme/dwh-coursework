@@ -469,3 +469,42 @@ def load_agg_facts():
                         GROUP BY 1,2,3;"""
 
     sqls.load_table(load_tgt_aggregate_sales, table, 'target')
+
+    table = "F_BOSS_AGG_PRC_PLD_DAY_T"
+    update_tgt_aggregate_sales = f"""
+                UPDATE  BOSS_DB.TARGET.{table} as TGT
+                SET TGT.TOTAL_CST_PRC = TGT.TOTAL_CST_PRC + TMP_PRC.CST_PRC,
+                ROW_UPDT_TMS = LOCALTIMESTAMP
+                FROM BOSS_DB.TEMP.TMP_PRC AS TMP_PRC
+                WHERE (
+                    TGT.PDT_KY = TMP_PRC.PDT_KY AND 
+                    TGT.LOCN_KY = TMP_PRC.LOCN_KY AND 
+                    TGT.DAY_KY = TO_CHAR(TO_DATE(TMP_PRC.TRANSACTION_TIME), 'YYYYMMDD')
+                );
+            """
+    sqls.load_table(update_tgt_aggregate_sales, table, 'target')
+    load_tgt_aggregate_sales = f""" INSERT INTO BOSS_DB.TARGET.{table} (
+                                    PDT_KY,
+                                    LOCN_KY,
+                                    DAY_KY,
+                                    TOTAL_CST_PRC,
+                                    ROW_INSRT_TMS,
+                                    ROW_UPDT_TMS
+                                    ) 
+                                        SELECT S.PDT_KY, 
+                                            S.LOCN_KY, 
+                                             D.DAY_KY, 
+                                             SUM(S.CST_PRC), 
+                                             LOCALTIMESTAMP, 
+                                             LOCALTIMESTAMP 
+                                        FROM BOSS_DB.TEMP.TMP_PRC S
+                                        INNER JOIN BOSS_DB.TARGET.D_BOSS_TIME_DAY_T D ON D.DAY_KY = TO_CHAR(TO_DATE(S.TRANSACTION_TIME), 'YYYYMMDD')
+                                        WHERE  (
+                                            S.PDT_KY, S.LOCN_KY, D.DAY_KY
+                                        ) NOT IN (
+                                            SELECT DISTINCT PDT_KY, LOCN_KY, DAY_KY FROM BOSS_DB.TARGET.{table}
+                                        )
+                                        GROUP BY 1,2,3;
+                                """
+
+    sqls.load_table(load_tgt_aggregate_sales, table, 'target')
