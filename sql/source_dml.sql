@@ -14909,7 +14909,8 @@ VALUES
         '2019-02-15 00:00:00',
         '2021-11-01 00:00:00',
         'Clearance Sales',
-        'Buy 2 get 30% discount'
+        'Buy 2 get 30% discount',
+        124
     ),
     (
         2,
@@ -14917,7 +14918,8 @@ VALUES
         '2018-07-02 00:00:00',
         '2021-11-27 00:00:00',
         'Clearance Sales',
-        'Buy 5 get 2 free'
+        'Buy 5 get 2 free',
+        899
     ),
     (
         3,
@@ -14925,7 +14927,8 @@ VALUES
         '2017-08-29 00:00:00',
         '2020-06-25 00:00:00',
         'Clearance Sales',
-        'Buy 4 get 30% discount'
+        'Buy 4 get 30% discount',
+        4532
     ),
     (
         4,
@@ -14933,7 +14936,8 @@ VALUES
         '2018-10-29 00:00:00',
         '2022-07-27 00:00:00',
         'Christmas Sales',
-        'Buy 4 get 40% discount'
+        'Buy 4 get 40% discount',
+        2212
     ),
     (
         5,
@@ -14941,7 +14945,8 @@ VALUES
         '2019-04-26 00:00:00',
         '2020-04-28 00:00:00',
         'Clearance Sales',
-        'Buy 3 get 1 free'
+        'Buy 3 get 1 free',
+        9001
     ),
     (
         6,
@@ -14949,7 +14954,8 @@ VALUES
         '2017-08-27 00:00:00',
         '2021-09-27 00:00:00',
         'Christmas Sales',
-        'Buy 2 get 30% discount'
+        'Buy 2 get 30% discount',
+        3437
     ),
     (
         7,
@@ -14957,5 +14963,6 @@ VALUES
         '2018-12-30 00:00:00',
         '2020-11-16 00:00:00',
         'New Year Sales',
-        'Buy 2 get 30% discount'
+        'Buy 2 get 30% discount',
+        56
     );
