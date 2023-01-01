@@ -1,6 +1,5 @@
 from Logger import Logger
 from Variables import Variables
-from bin.load import sales_load, customer_load, aggregate_sales_load,  product_load
 from bin import truncate_tables
 from bin.extraction import extraction
 from bin.load import data_loader
