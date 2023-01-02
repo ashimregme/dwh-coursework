@@ -1,0 +1,7 @@
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_stage.sales_by_location
+(location_id INT, country STRING, state STRING, city STRING, transaction_time TIMESTAMP, qty FLOAT, amt FLOAT, dscnt FLOAT)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
+STORED AS orc;
+
+INSERT INTO hive_stage.sales_by_location SELECT l.id, l.country_desc, l.state_desc, l.city_desc, s.transaction_time, s.quantity, s.amount, s.discount FROM hive_stage.sales s LEFT JOIN hive_stage.location l ON s.location_id = l.id;
+
