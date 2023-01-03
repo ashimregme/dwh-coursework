@@ -1,7 +1,50 @@
+##HIVE STAGE
+
 CREATE EXTERNAL TABLE IF NOT EXISTS hive_stage.sales_by_location
-(location_id INT, country STRING, state STRING, city STRING, transaction_time TIMESTAMP, qty FLOAT, amt FLOAT, dscnt FLOAT)
-ROW FORMAT DELIMITED FIELDS TERMINATED BY ","
-STORED AS orc;
+(location_id INT, country STRING, state STRING, city STRING, transaction_time TIMESTAMP, qty INT, amt FLOAT, dscnt FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS orc;
 
 INSERT INTO hive_stage.sales_by_location SELECT l.id, l.country_desc, l.state_desc, l.city_desc, s.transaction_time, s.quantity, s.amount, s.discount FROM hive_stage.sales s LEFT JOIN hive_stage.location l ON s.location_id = l.id;
 
+---------------------------------------------------------------------------------
+
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_stage.sales_by_product (product_id INT, product_desc STRING, qty INT, amt FLOAT, dscnt FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+INSERT INTO hive_stage.sales_by_product SELECT p.id, p.product_desc, s.quantity, s.amount, s.discount FROM hive_stage.sales s LEFT JOIN hive_stage.product p ON s.product_id = p.id;
+
+---------------------------------------------------------------------------------
+
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_stage.sales_by_product_and_price (product_id INT, product_desc STRING, cost_price FLOAT, qty INT, amt FLOAT, dscnt FLOAT, profit FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+INSERT INTO hive_stage.sales_by_product_and_price SELECT p.id, p.product_desc, prc.cost_price, s.quantity, s.amount, s.discount,  ((s.amount/s.quantity) - prc.cost_price - s.discount) FROM hive_stage.sales s LEFT JOIN hive_stage.product p ON s.product_id = p.id LEFT JOIN hive_stage.price prc ON s.product_id = prc.product_id;
+
+---------------------------------------------------------------------------------
+
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_stage.sales_by_customer (customer_id INT, first_name STRING, qty INT, amt FLOAT, dscnt FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+INSERT INTO hive_stage.sales_by_customer SELECT c.id, c.first_name, s.quantity, s.amount, s.discount FROM hive_stage.sales s LEFT JOIN hive_stage.customer c ON s.customer_id = c.id;
+
+
+##HIVE TARGET
+
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_target.sales_by_location
+(location_id INT, country STRING, state STRING, city STRING, transaction_time TIMESTAMP, qty INT, amt FLOAT, dscnt FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS orc;
+
+INSERT INTO hive_target.sales_by_location SELECT * FROM hive_stage.sales_by_location;
+
+---------------------------------------------------------------------------------
+
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_target.sales_by_product (product_id INT, product_desc STRING, qty INT, amt FLOAT, dscnt FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+INSERT INTO hive_target.sales_by_product SELECT * FROM hive_stage.sales_by_product;
+
+---------------------------------------------------------------------------------
+
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_target.sales_by_product_and_price (product_id INT, product_desc STRING, cost_price FLOAT, qty INT, amt FLOAT, dscnt FLOAT, profit FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+INSERT INTO hive_target.sales_by_product_and_price SELECT * FROM hive_stage.sales_by_product_and_price;
+
+---------------------------------------------------------------------------------
+
+CREATE EXTERNAL TABLE IF NOT EXISTS hive_target.sales_by_customer (customer_id INT, first_name STRING, qty INT, amt FLOAT, dscnt FLOAT) ROW FORMAT DELIMITED FIELDS TERMINATED BY "," STORED AS ORC;
+
+INSERT INTO hive_target.sales_by_customer SELECT * FROM hive_stage.sales_by_customer;
