@@ -9,36 +9,16 @@ def truncate():
 
     tables = {
         "STAGE": [
-            'LOCATION',
-            'PRODUCT',
-            'LOYALTY_CARD',
-            'CUSTOMER',
-            'SALES',
-            'PRICE',
-            'PROMOTION_SCHEME'
+            'LOCATION', 'PRODUCT', 'LOYALTY_CARD', 'CUSTOMER', 'SALES', 'PRICE', 'PROMOTION_SCHEME'
         ],
         "TEMP": [
-            'LOCN',
-            'LYLTY_CRD',
-            'CSTMR',
-            'PDT',
-            'SALES',
-            'PRC',
-            'AGG_PRC_PLD_DAY',
-            'PRMTN_SCHM'
+            'LOCN', 'LYLTY_CRD', 'CSTMR', 'PDT', 'SALES', 'PRC', 'AGG_PRC_PLD_DAY', 'PRMTN_SCHM'
         ],
         "TARGET_D_BOSS": [
-            'LOCN_T',
-            'LYLTY_CRD_T',
-            'PDT_T',
-            'CSTMR_T',
-            'PRMTN_SCHM_T'
+            'LOCN_T', 'LYLTY_CRD_T', 'PDT_T', 'CSTMR_T', 'PRMTN_SCHM_T'
         ],
         "TARGET_F_BOSS": [
-            'SLS_T',
-            'AGG_SLS_PLC_MONTH_T',
-            'PRC_T',
-            'AGG_PRC_PLD_DAY_T'
+            'SLS_T', 'AGG_SLS_PLC_MONTH_T', 'PRC_T', 'AGG_PRC_PLD_DAY_T'
         ]
     }
 

@@ -264,7 +264,7 @@ def load_dimensions():
                     ;"""
     sqls.load_table(load_temp_prmtn_schm, table, 'temp')
 
-    # load dimension table product
+    # load dimension table promotion scheme
     table = "D_BOSS_PRMTN_SCHM_T"
     temp_table = "BOSS_DB.TEMP.TMP_PRMTN_SCHM"
     update_tgt_prmtn_schm = f""" UPDATE BOSS_DB.TARGET.{table} AS T1
@@ -478,7 +478,7 @@ def load_agg_facts():
     sqls.load_table(load_tgt_aggregate_sales, table, 'target')
 
     table = "F_BOSS_AGG_PRC_PLD_DAY_T"
-    update_tgt_aggregate_sales = f"""
+    update_tgt_aggregate_price = f"""
                 UPDATE  BOSS_DB.TARGET.{table} as TGT
                 SET TGT.TOTAL_CST_PRC = TGT.TOTAL_CST_PRC + TMP_PRC.CST_PRC,
                 ROW_UPDT_TMS = LOCALTIMESTAMP
@@ -489,8 +489,8 @@ def load_agg_facts():
                     TGT.DAY_KY = TO_CHAR(TO_DATE(TMP_PRC.TRANSACTION_TIME), 'YYYYMMDD')
                 );
             """
-    sqls.load_table(update_tgt_aggregate_sales, table, 'target')
-    load_tgt_aggregate_sales = f""" INSERT INTO BOSS_DB.TARGET.{table} (
+    sqls.load_table(update_tgt_aggregate_price, table, 'target')
+    load_tgt_aggregate_price = f""" INSERT INTO BOSS_DB.TARGET.{table} (
                                     PDT_KY,
                                     LOCN_KY,
                                     DAY_KY,
@@ -514,4 +514,5 @@ def load_agg_facts():
                                         GROUP BY 1,2,3;
                                 """
 
-    sqls.load_table(load_tgt_aggregate_sales, table, 'target')
+    sqls.load_table(load_tgt_aggregate_price, table, 'target')
+

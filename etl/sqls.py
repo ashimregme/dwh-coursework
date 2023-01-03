@@ -25,23 +25,10 @@ def load_stage(table, v):
     overwrite_option = v.get("OVERWRITE_FLAG")
     schema = v.get("STAGE_SCHEMA")
 
-    # create_internal_stage(table, internal_stage, file_fmt)
     load_internal_stage_table(database, source_schema, table, table,
                               file_fmt, internal_stage, compression_type, overwrite_option)
     load_istg_to_stage(database, schema, file_fmt,
                        internal_stage, compression_type, table, table)
-
-
-def create_internal_stage(table, internal_stage, file_format):
-    try:
-        create_istg_query = f""" create or replace stage {internal_stage}_{table} file_format = {file_format}"""
-        connect.execute_query(create_istg_query)
-        print(f"sucessfully created internal stage for {table}")
-        log.log_message(f"sucessfully created internal stage for {table}")
-    except Exception as e:
-        print(f"Failed to create internal stage for {table}")
-        log.log_message(f"Failed to create internal stage for {table}")
-
 
 def load_internal_stage_table(database, source_schema, istg_table, source_table, file_format, internal_stage, compression_type, overwrite_option):
     try:
