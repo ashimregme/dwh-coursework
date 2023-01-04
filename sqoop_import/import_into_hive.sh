@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tables='LOYALTY_CARD PRODUCT SALES PRICE CUSTOMER PROMOTION_SCHEME'
+tables='LOCATION LOYALTY_CARD PRODUCT SALES PRICE CUSTOMER PROMOTION_SCHEME'
 
 echo "\nImporting all tables from mysql db to hive staging table\n"
 for table in $tables
